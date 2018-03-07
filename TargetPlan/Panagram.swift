@@ -42,10 +42,12 @@ class Panagram {
         //1
         switch option {
         case .locallog:
-            
-            consoleIO.printUsage()
+           consoleIO.printUsage()
         case .temperlog:
-            consoleIO.printUsage()
+            let tmpdir = findStringInString(str: run(cmd: "set"), pattern: "(?<=TMPDIR=).*(?<=)")
+            if tmpdir.count > 0{
+                print(run(cmd: "cd \(tmpdir)\nls"))
+            }
         case .anagram:
             //2
             if argCount != 4 {
@@ -95,4 +97,54 @@ class Panagram {
         return (OptionType(value: option), option)
     }
     
+    var error: NSDictionary?
+    func run(cmd:String) -> String {
+        let des = NSAppleScript(source: "do shell script \"\(cmd)\"")!.executeAndReturnError(&error)
+        if error != nil {
+            return String(describing: error!)
+        }
+        if des.stringValue != nil {
+            return des.stringValue!
+        }else{
+            return ""
+        }
+    }
+    
+    func findArrayInString(str:String , pattern:String ) -> [String]
+    {
+        do {
+            var stringArray = [String]();
+            let regex = try NSRegularExpression(pattern: pattern, options: NSRegularExpression.Options.caseInsensitive)
+            let res = regex.matches(in: str, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, str.count))
+            for checkingRes in res
+            {
+                let tmp = (str as NSString).substring(with: checkingRes.range)
+                stringArray.append(tmp.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+            }
+            return stringArray
+        }
+        catch
+        {
+            consoleIO.writeMessage("findArrayInString Regex error", to: .error)
+            return [String]()
+        }
+    }
+    
+    func findStringInString(str:String , pattern:String ) -> String
+    {
+        do {
+            let regex = try NSRegularExpression(pattern: pattern, options: NSRegularExpression.Options.caseInsensitive)
+            let res = regex.firstMatch(in: str, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, str.count))
+            if let checkingRes = res
+            {
+                return ((str as NSString).substring(with: checkingRes.range)).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            }
+            return ""
+        }
+        catch
+        {
+            consoleIO.writeMessage("findStringInString Regex error", to: .error)
+            return ""
+        }
+    }
 }

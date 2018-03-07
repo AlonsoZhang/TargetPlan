@@ -65,11 +65,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-p"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "level"
+            argument = "-t"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
