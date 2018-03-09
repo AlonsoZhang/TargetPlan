@@ -28,26 +28,71 @@ enum OptionType: String {
     }
 }
 
+extension String {
+    public func substring(from index: Int) -> String {
+        if self.count > index {
+            let startIndex = self.index(self.startIndex, offsetBy: index)
+            let subString = self[startIndex..<self.endIndex]
+            return String(subString)
+        } else {
+            return self
+        }
+    }
+}
+
 class Panagram {
-    
     let consoleIO = ConsoleIO()
-    
     func staticMode() {
-        //1
         let argCount = CommandLine.argc
-        //2
         let argument = CommandLine.arguments[1]
-        //3
-        let (option, value) = getOption(argument.substring(from: argument.index(argument.startIndex, offsetBy: 1)))
-        //1
+        let (option, value) = getOption(argument.substring(from: 1))
         switch option {
         case .locallog:
            consoleIO.printUsage()
         case .temperlog:
-            let tmpdir = findStringInString(str: run(cmd: "set"), pattern: "(?<=TMPDIR=).*(?<=)")
-            if tmpdir.count > 0{
-                print(run(cmd: "cd \(tmpdir)\nls"))
+            if argCount != 5 {
+                if argCount > 5 {
+                    consoleIO.writeMessage("Too many arguments for option \(option.rawValue)", to: .error)
+                } else {
+                    consoleIO.writeMessage("Too few arguments for option \(option.rawValue)", to: .error)
+                }
+                consoleIO.printUsage()
+            }else {
+                let logdateformat = CommandLine.arguments[2]
+                let starttime = CommandLine.arguments[3]
+                let overtime = CommandLine.arguments[4]
+                let tmpdir = findStringInString(str: run(cmd: "set"), pattern: "(?<=TMPDIR=).*")
+                if tmpdir.count > 0{
+                    let url = URL(fileURLWithPath: tmpdir)
+                    let manager = FileManager.default
+                    let enumeratorAtPath = manager.enumerator(atPath: url.path)
+                    let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true) as NSArray
+                    let targetfolder = "\(paths[0])/\(starttime)-\(overtime)"
+                    var mkdir = true
+                    for logpath in enumeratorAtPath! {
+                        if (logpath as! String).contains(".zip"){
+                            let datereg = findStringInString(str: (logpath as! String), pattern: "\\d{8}-\\d{6}")
+                            if datereg.count > 0{
+//                                if judgeintime(target: datereg, start: starttime, end: overtime)
+//                                {
+//                                    //run(cmd: "cp \(tmpdir)\(logpath) \(targetfolder)")
+//                                    print(logpath)
+//                                }
+                                print(logpath)
+//                                run(cmd: "cp \(tmpdir)\(logpath) \(targetfolder)")
+                                if mkdir{
+                                    mkdir = false
+                                    run(cmd: "mkdir \(targetfolder)")
+                                }
+                                
+                                //print(logpath)
+                            }
+                        }
+                    }
+                }
             }
+            
+            
         case .anagram:
             //2
             if argCount != 4 {
@@ -98,6 +143,7 @@ class Panagram {
     }
     
     var error: NSDictionary?
+    @discardableResult
     func run(cmd:String) -> String {
         let des = NSAppleScript(source: "do shell script \"\(cmd)\"")!.executeAndReturnError(&error)
         if error != nil {
@@ -109,6 +155,24 @@ class Panagram {
             return ""
         }
     }
+    
+    func judgeintime(target:String,start:String,end:String) -> Bool
+    {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMddHHmmss"
+        
+        let targetdateFormatter = DateFormatter()
+        targetdateFormatter.dateFormat = "yyyyMMdd-HHmmss"
+        
+        let afterstarttime = Int(targetdateFormatter.date(from:target)!.timeIntervalSince1970-dateFormatter.date(from:start)!.timeIntervalSince1970)
+        let beforeendtime = Int(dateFormatter.date(from:end)!.timeIntervalSince1970-targetdateFormatter.date(from:target)!.timeIntervalSince1970)
+        if afterstarttime > 0 && beforeendtime > 0 {
+            return true
+        }else{
+            return false
+        }
+    }
+    
     
     func findArrayInString(str:String , pattern:String ) -> [String]
     {

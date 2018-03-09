@@ -68,6 +68,18 @@
             argument = "-t"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "yyyyMMdd-HHmmss"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "20180306000000"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "20180307000000"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
