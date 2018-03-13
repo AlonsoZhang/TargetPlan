@@ -10,7 +10,6 @@
 		E28DB098204FC2BE0086B85C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28DB097204FC2BE0086B85C /* main.swift */; };
 		E28DB09F204FC6870086B85C /* ConsoleIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28DB09E204FC6870086B85C /* ConsoleIO.swift */; };
 		E28DB0A1204FC6C90086B85C /* Panagram.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28DB0A0204FC6C90086B85C /* Panagram.swift */; };
-		E28DB0A3204FC88B0086B85C /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28DB0A2204FC88B0086B85C /* StringExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,8 +29,6 @@
 		E28DB097204FC2BE0086B85C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		E28DB09E204FC6870086B85C /* ConsoleIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleIO.swift; sourceTree = "<group>"; };
 		E28DB0A0204FC6C90086B85C /* Panagram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panagram.swift; sourceTree = "<group>"; };
-		E28DB0A2204FC88B0086B85C /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
-		E2CED03920526F1E00D9C0D4 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,8 +64,6 @@
 				E28DB097204FC2BE0086B85C /* main.swift */,
 				E28DB09E204FC6870086B85C /* ConsoleIO.swift */,
 				E28DB0A0204FC6C90086B85C /* Panagram.swift */,
-				E2CED03920526F1E00D9C0D4 /* Config.plist */,
-				E28DB0A2204FC88B0086B85C /* StringExtension.swift */,
 			);
 			path = TargetPlan;
 			sourceTree = "<group>";
@@ -131,7 +126,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E28DB0A3204FC88B0086B85C /* StringExtension.swift in Sources */,
 				E28DB098204FC2BE0086B85C /* main.swift in Sources */,
 				E28DB09F204FC6870086B85C /* ConsoleIO.swift in Sources */,
 				E28DB0A1204FC6C90086B85C /* Panagram.swift in Sources */,

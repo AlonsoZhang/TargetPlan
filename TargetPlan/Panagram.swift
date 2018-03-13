@@ -11,8 +11,6 @@ import Foundation
 enum OptionType: String {
     case locallog = "l"
     case temperlog = "t"
-    case palindrome = "p"
-    case anagram = "a"
     case help = "h"
     case unknown
     
@@ -20,8 +18,6 @@ enum OptionType: String {
         switch value {
         case "l": self = .locallog
         case "t": self = .temperlog
-        case "a": self = .anagram
-        case "p": self = .palindrome
         case "h": self = .help
         default: self = .unknown
         }
@@ -48,7 +44,7 @@ class Panagram {
         let (option, value) = getOption(argument.substring(from: 1))
         switch option {
         case .locallog:
-           consoleIO.printUsage()
+            consoleIO.printUsage()
         case .temperlog:
             if argCount != 5 {
                 if argCount > 5 {
@@ -66,73 +62,48 @@ class Panagram {
                     let url = URL(fileURLWithPath: tmpdir)
                     let manager = FileManager.default
                     let enumeratorAtPath = manager.enumerator(atPath: url.path)
-                    let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true) as NSArray
-                    let targetfolder = "\(paths[0])/\(starttime)-\(overtime)"
-                    var mkdir = true
+                    let paths = NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true) as NSArray
+                    let vaultPath = "/vault/data_collection/test_station_config/gh_station_info.json";
+                    var stationtype = "station"
+                    if manager.fileExists(atPath: vaultPath){
+                        do {
+                            let vaultstring = try String.init(contentsOf: URL(fileURLWithPath:vaultPath), encoding: String.Encoding.utf8)
+                            stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_TYPE\" : \").*(?=\")")
+                        } catch {
+                            print(error)
+                        }
+                    }
+                    let targetfolder = "\(paths[0])/\(stationtype)-\(starttime)-\(overtime)"
+                    var tarfile = ""
                     for logpath in enumeratorAtPath! {
                         if (logpath as! String).contains(".zip"){
-                            let datereg = findStringInString(str: (logpath as! String), pattern: "\\d{8}-\\d{6}")
+                            let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
                             if datereg.count > 0{
-//                                if judgeintime(target: datereg, start: starttime, end: overtime)
-//                                {
-//                                    //run(cmd: "cp \(tmpdir)\(logpath) \(targetfolder)")
-//                                    print(logpath)
-//                                }
-                                print(logpath)
-//                                run(cmd: "cp \(tmpdir)\(logpath) \(targetfolder)")
-                                if mkdir{
-                                    mkdir = false
-                                    run(cmd: "mkdir \(targetfolder)")
+                                if judgeintime(target: datereg, start: starttime, end: overtime)
+                                {
+                                    tarfile.append(" \(logpath)")
                                 }
-                                
-                                //print(logpath)
                             }
                         }
                     }
+                    if tarfile.count > 0{
+                        createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
+                        let longfilePath = "\(paths[0])/long.sh"
+                        tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)"
+                        try! tarfile.write(toFile: longfilePath, atomically: true, encoding: String.Encoding.utf8)
+                        run(cmd: "sh \(longfilePath)")
+                        run(cmd: "rm \(longfilePath)")
+                        consoleIO.writeMessage("\(targetfolder).tar")
+                        //let aaa = run(cmd: "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)")
+                    }else{
+                        consoleIO.writeMessage("No file match regex or time rule")
+                    }
+                    
                 }
             }
-            
-            
-        case .anagram:
-            //2
-            if argCount != 4 {
-                if argCount > 4 {
-                    consoleIO.writeMessage("Too many arguments for option \(option.rawValue)", to: .error)
-                } else {
-                    consoleIO.writeMessage("Too few arguments for option \(option.rawValue)", to: .error)
-                }
-                consoleIO.printUsage()
-            } else {
-                //3
-                let first = CommandLine.arguments[2]
-                let second = CommandLine.arguments[3]
-                
-                if first.isAnagramOf(second) {
-                    consoleIO.writeMessage("\(second) is an anagram of \(first)")
-                } else {
-                    consoleIO.writeMessage("\(second) is not an anagram of \(first)")
-                }
-            }
-        case .palindrome:
-            //4
-            if argCount != 3 {
-                if argCount > 3 {
-                    consoleIO.writeMessage("Too many arguments for option \(option.rawValue)", to: .error)
-                } else {
-                    consoleIO.writeMessage("Too few arguments for option \(option.rawValue)", to: .error)
-                }
-                consoleIO.printUsage()
-            } else {
-                //5
-                let s = CommandLine.arguments[2]
-                let isPalindrome = s.isPalindrome()
-                consoleIO.writeMessage("\(s) is \(isPalindrome ? "" : "not ")a palindrome")
-            }
-        //6
         case .help:
             consoleIO.printUsage()
         case .unknown:
-            //7
             consoleIO.writeMessage("Unknown option \(value)")
             consoleIO.printUsage()
         }
@@ -173,7 +144,6 @@ class Panagram {
         }
     }
     
-    
     func findArrayInString(str:String , pattern:String ) -> [String]
     {
         do {
@@ -211,4 +181,14 @@ class Panagram {
             return ""
         }
     }
+    
+    func createFile(name:String, fileBaseUrl:URL){
+        let manager = FileManager.default
+        let file = fileBaseUrl.appendingPathComponent(name)
+        let exist = manager.fileExists(atPath: file.path)
+        if !exist {
+            manager.createFile(atPath: file.path,contents:nil,attributes:nil)
+        }
+    }
 }
+
