@@ -26,7 +26,7 @@ class ConsoleIO {
     func printUsage() {
         let executableName = (CommandLine.arguments[0] as NSString).lastPathComponent
         writeMessage("usage:")
-        writeMessage("\(executableName) -t yyyyMMddHHmmss yyyyMMddHHmmss")
+        writeMessage("\(executableName) -t regexdateformat yyyyMMddHHmmss yyyyMMddHHmmss")
         writeMessage("or")
         writeMessage("\(executableName) -l yyyyMMdd yyyyMMdd")
         writeMessage("or")

@@ -68,24 +68,38 @@ class Panagram {
                     if manager.fileExists(atPath: vaultPath){
                         do {
                             let vaultstring = try String.init(contentsOf: URL(fileURLWithPath:vaultPath), encoding: String.Encoding.utf8)
-                            stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_TYPE\" : \").*(?=\")")
+                            stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_ID\" : \").*(?=\")")
                         } catch {
                             print(error)
                         }
                     }
-                    let targetfolder = "\(paths[0])/\(stationtype)-\(starttime)-\(overtime)"
+                    var targetfolder = "\(paths[0])/\(stationtype)-\(starttime)-\(overtime)"
                     var tarfile = ""
-                    for logpath in enumeratorAtPath! {
-                        if (logpath as! String).contains(".zip"){
-                            let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
-                            if datereg.count > 0{
-                                if judgeintime(target: datereg, start: starttime, end: overtime)
-                                {
-                                    tarfile.append(" \(logpath)")
+                    if logdateformat == "None"{
+                        targetfolder = "\(paths[0])/\(stationtype)"
+                        for logpath in enumeratorAtPath! {
+                            var newlogpath = logpath as! String
+                            newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
+                            newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
+                            tarfile.append(" \(newlogpath)")
+                        }
+                    }else{
+                        for logpath in enumeratorAtPath! {
+                            if (logpath as! String).contains(".zip"){
+                                let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
+                                if datereg.count > 0{
+                                    if judgeintime(target: datereg, start: starttime, end: overtime)
+                                    {
+                                        var newlogpath = logpath as! String
+                                        newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
+                                        newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
+                                        tarfile.append(" \(newlogpath)")
+                                    }
                                 }
                             }
                         }
                     }
+                    
                     if tarfile.count > 0{
                         createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
                         let longfilePath = "\(paths[0])/long.sh"
@@ -98,7 +112,6 @@ class Panagram {
                     }else{
                         consoleIO.writeMessage("No file match regex or time rule")
                     }
-                    
                 }
             }
         case .help:
@@ -133,7 +146,13 @@ class Panagram {
         dateFormatter.dateFormat = "yyyyMMddHHmmss"
         
         let targetdateFormatter = DateFormatter()
-        targetdateFormatter.dateFormat = "yyyyMMdd-HHmmss"
+        if target.count == 23 {
+            targetdateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        }else if target.count == 15 {
+            targetdateFormatter.dateFormat = "yyyyMMdd-HHmmss"
+        }else{
+            return false
+        }
         
         let afterstarttime = Int(targetdateFormatter.date(from:target)!.timeIntervalSince1970-dateFormatter.date(from:start)!.timeIntervalSince1970)
         let beforeendtime = Int(dateFormatter.date(from:end)!.timeIntervalSince1970-targetdateFormatter.date(from:target)!.timeIntervalSince1970)
