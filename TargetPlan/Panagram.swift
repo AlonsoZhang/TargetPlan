@@ -44,7 +44,16 @@ class Panagram {
         let (option, value) = getOption(argument.substring(from: 1))
         switch option {
         case .locallog:
-            consoleIO.printUsage()
+            if argCount != 5 {
+                if argCount > 5 {
+                    consoleIO.writeMessage("Too many arguments for option \(option.rawValue)", to: .error)
+                } else {
+                    consoleIO.writeMessage("Too few arguments for option \(option.rawValue)", to: .error)
+                }
+                consoleIO.printUsage()
+            }else {
+                doPlan(mode: "local")
+            }
         case .temperlog:
             if argCount != 5 {
                 if argCount > 5 {
@@ -54,71 +63,82 @@ class Panagram {
                 }
                 consoleIO.printUsage()
             }else {
-                let logdateformat = CommandLine.arguments[2]
-                let starttime = CommandLine.arguments[3]
-                let overtime = CommandLine.arguments[4]
-                let tmpdir = findStringInString(str: run(cmd: "set"), pattern: "(?<=TMPDIR=).*")
-                if tmpdir.count > 0{
-                    let url = URL(fileURLWithPath: tmpdir)
-                    let manager = FileManager.default
-                    let enumeratorAtPath = manager.enumerator(atPath: url.path)
-                    let paths = NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true) as NSArray
-                    let vaultPath = "/vault/data_collection/test_station_config/gh_station_info.json";
-                    var stationtype = "station"
-                    if manager.fileExists(atPath: vaultPath){
-                        do {
-                            let vaultstring = try String.init(contentsOf: URL(fileURLWithPath:vaultPath), encoding: String.Encoding.utf8)
-                            stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_ID\" : \").*(?=\")")
-                        } catch {
-                            print(error)
-                        }
-                    }
-                    var targetfolder = "\(paths[0])/\(stationtype)-\(starttime)-\(overtime)"
-                    var tarfile = ""
-                    if logdateformat == "None"{
-                        targetfolder = "\(paths[0])/\(stationtype)"
-                        for logpath in enumeratorAtPath! {
-                            var newlogpath = logpath as! String
-                            newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
-                            newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
-                            tarfile.append(" \(newlogpath)")
-                        }
-                    }else{
-                        for logpath in enumeratorAtPath! {
-                            if (logpath as! String).contains(".zip"){
-                                let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
-                                if datereg.count > 0{
-                                    if judgeintime(target: datereg, start: starttime, end: overtime)
-                                    {
-                                        var newlogpath = logpath as! String
-                                        newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
-                                        newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
-                                        tarfile.append(" \(newlogpath)")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if tarfile.count > 0{
-                        createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
-                        let longfilePath = "\(paths[0])/long.sh"
-                        tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)"
-                        try! tarfile.write(toFile: longfilePath, atomically: true, encoding: String.Encoding.utf8)
-                        run(cmd: "sh \(longfilePath)")
-                        run(cmd: "rm \(longfilePath)")
-                        consoleIO.writeMessage("\(targetfolder).tar")
-                        //let aaa = run(cmd: "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)")
-                    }else{
-                        consoleIO.writeMessage("No file match regex or time rule")
-                    }
-                }
+                doPlan(mode: "temper")
             }
         case .help:
             consoleIO.printUsage()
         case .unknown:
             consoleIO.writeMessage("Unknown option \(value)")
             consoleIO.printUsage()
+        }
+    }
+    
+    func doPlan(mode:String) {
+        let logdateformat = CommandLine.arguments[2]
+        let starttime = CommandLine.arguments[3]
+        let overtime = CommandLine.arguments[4]
+        var tmpdir = ""
+        if mode == "temper" {
+            tmpdir = findStringInString(str: run(cmd: "set"), pattern: "(?<=TMPDIR=).*")
+        }else if mode == "local"{
+            let Docpaths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true) as NSArray
+            tmpdir = "\(Docpaths[0])/"
+        }
+        if tmpdir.count > 0{
+            let url = URL(fileURLWithPath: tmpdir)
+            let manager = FileManager.default
+            let enumeratorAtPath = manager.enumerator(atPath: url.path)
+            let paths = NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true) as NSArray
+            let vaultPath = "/vault/data_collection/test_station_config/gh_station_info.json";
+            var stationtype = "station"
+            if manager.fileExists(atPath: vaultPath){
+                do {
+                    let vaultstring = try String.init(contentsOf: URL(fileURLWithPath:vaultPath), encoding: String.Encoding.utf8)
+                    stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_ID\" : \").*(?=\")")
+                } catch {
+                    print(error)
+                }
+            }
+            var targetfolder = "\(paths[0])/\(stationtype)-\(starttime)-\(overtime)"
+            var tarfile = ""
+            if logdateformat == "None"{
+                targetfolder = "\(paths[0])/\(stationtype)"
+                for logpath in enumeratorAtPath! {
+                    var newlogpath = logpath as! String
+                    newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
+                    newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
+                    tarfile.append(" \(newlogpath)")
+                }
+            }else{
+                for logpath in enumeratorAtPath! {
+                    print(logpath)
+                    if (mode == "temper" && (logpath as! String).contains(".zip")) || (mode == "local" ){
+                        let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
+                        if datereg.count > 0{
+                            if judgeintime(target: datereg, start: starttime, end: overtime)
+                            {
+                                var newlogpath = logpath as! String
+                                newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
+                                newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
+                                tarfile.append(" \(newlogpath)")
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if tarfile.count > 0{
+                createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
+                let longfilePath = "\(paths[0])/long.sh"
+                tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)"
+                try! tarfile.write(toFile: longfilePath, atomically: true, encoding: String.Encoding.utf8)
+                run(cmd: "sh \(longfilePath)")
+                run(cmd: "rm \(longfilePath)")
+                consoleIO.writeMessage("\(targetfolder).tar")
+                //let aaa = run(cmd: "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)")
+            }else{
+                consoleIO.writeMessage("No file match regex or time rule")
+            }
         }
     }
     
@@ -150,6 +170,8 @@ class Panagram {
             targetdateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         }else if target.count == 15 {
             targetdateFormatter.dateFormat = "yyyyMMdd-HHmmss"
+        }else if target.count == 19 {
+            targetdateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         }else{
             return false
         }
