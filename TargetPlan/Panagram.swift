@@ -103,12 +103,13 @@ class Panagram {
             var tarfile = ""
             if logdateformat == "None"{
                 targetfolder = "\(paths[0])/\(stationtype)"
-                for logpath in enumeratorAtPath! {
-                    var newlogpath = logpath as! String
-                    newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
-                    newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
-                    tarfile.append(" \(newlogpath)")
-                }
+//                for logpath in enumeratorAtPath! {
+//                    var newlogpath = logpath as! String
+//                    newlogpath = newlogpath.replacingOccurrences(of: ":", with: "\\:")
+//                    newlogpath = newlogpath.replacingOccurrences(of: " ", with: "\\ ")
+//                    tarfile.append(" \(newlogpath)")
+//                }
+                tarfile.append(" \(tmpdir)")
             }else{
                 for logpath in enumeratorAtPath! {
                     print(logpath)
@@ -130,7 +131,7 @@ class Panagram {
             if tarfile.count > 0{
                 createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
                 let longfilePath = "\(paths[0])/long.sh"
-                tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile)"
+                tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile) \(longfilePath) /shared/"
                 try! tarfile.write(toFile: longfilePath, atomically: true, encoding: String.Encoding.utf8)
                 run(cmd: "sh \(longfilePath)")
                 run(cmd: "rm \(longfilePath)")
