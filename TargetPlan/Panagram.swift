@@ -112,7 +112,7 @@ class Panagram {
                 tarfile.append(" \(tmpdir)")
             }else{
                 for logpath in enumeratorAtPath! {
-                    print(logpath)
+                    //print(logpath)
                     if (mode == "temper" && (logpath as! String).contains(".zip")) || (mode == "local" ){
                         let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
                         if datereg.count > 0{
@@ -131,7 +131,7 @@ class Panagram {
             if tarfile.count > 0{
                 createFile(name:"long.sh", fileBaseUrl: URL(fileURLWithPath: paths[0] as! String))
                 let longfilePath = "\(paths[0])/long.sh"
-                tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar \(tarfile) \(longfilePath) /shared/"
+                tarfile = "cd \(tmpdir);tar -cvf \(targetfolder).tar /GH_Config/files/restoreinfo.txt \(tarfile) "
                 try! tarfile.write(toFile: longfilePath, atomically: true, encoding: String.Encoding.utf8)
                 run(cmd: "sh \(longfilePath)")
                 run(cmd: "rm \(longfilePath)")
