@@ -67,15 +67,19 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "None"
+            argument = "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "20180418000000"
+            argument = "20180719000000"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "20180419000000"
+            argument = "20180720000000"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "csv"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
