@@ -67,15 +67,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}"
+            argument = "\\d{8}-\\d{6}"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "20180719000000"
+            argument = "20180914150000"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "20180720000000"
+            argument = "20180914151500"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

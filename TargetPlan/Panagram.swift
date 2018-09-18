@@ -167,17 +167,24 @@ class Panagram {
                     let vaultstring = try String.init(contentsOf: URL(fileURLWithPath:vaultPath), encoding: String.Encoding.utf8)
                     stationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_ID\" : \").*(?=\")")
                     let shortstationtype = findStringInString(str: vaultstring, pattern: "(?<=\"STATION_TYPE\" : \").*(?=\")")
+                    let product = findStringInString(str: vaultstring, pattern: "(?<=\"PRODUCT\" : \").*(?=\")")
+                    let dictkey = "\(product)-\(shortstationtype)"
                     let Downloadpaths = NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true) as NSArray
                     let manager = FileManager.default
                     let file = "\(Downloadpaths[0])/getLogData.plist"
                     if manager.fileExists(atPath: file) {
                         let GetlogdataPlist = NSDictionary(contentsOfFile: "\(Downloadpaths[0])/getLogData.plist") as! [String : Any]
-                        let stationDic = GetlogdataPlist[shortstationtype] as! [String : Any]
-                        includestr = stationDic["IncludeString"] as! String
-                        excludestr = stationDic["ExcludeString"] as! String
-                        startstr = stationDic["StartString"] as! String
-                        endstr = stationDic["EndString"] as! String
-                        logformatstr = stationDic["LogFormat"] as! String
+                        if(GetlogdataPlist.keys.contains(dictkey)){
+                            let stationDic = GetlogdataPlist[dictkey] as! [String : Any]
+                            includestr = stationDic["IncludeString"] as! String
+                            excludestr = stationDic["ExcludeString"] as! String
+                            startstr = stationDic["StartString"] as! String
+                            endstr = stationDic["EndString"] as! String
+                            logformatstr = stationDic["LogFormat"] as! String
+                        }else{
+                            consoleIO.writeMessage("getLogData.plist no key:\(dictkey)", to: .error)
+                            return
+                        }
                     }else{
                         consoleIO.writeMessage("getLogData.plist not exist", to: .error)
                     }
@@ -205,6 +212,39 @@ class Panagram {
                                     }else{
                                         //self.showmessage(inputString: "\n========================================\nFolder: \(logpath)")
                                     }
+                                }
+                            }
+                        }
+                        if(mode == "temper"){
+                            let datereg = findStringInString(str: (logpath as! String), pattern: logdateformat)
+                            if datereg.count > 0{
+                                if judgeintime(target: datereg, start: starttime, end: overtime){
+                                    var truepath = "\(tmpdir)\(logpath)"
+                                    truepath = truepath.replacingOccurrences(of: ":", with: "\\\\:")
+                                    truepath = truepath.replacingOccurrences(of: " ", with: "\\\\ ")
+                                    if truepath.hasSuffix(".zip"){
+                                        let endRange = truepath.range(of: ".zip", options: .backwards, range: nil, locale: nil)
+                                        let folderpath = truepath.substring(to: (endRange?.lowerBound)!)
+                                        self.run(cmd: "unzip \(truepath) -d \(folderpath)")
+                                        let enumeratorAtPath2 = manager.enumerator(atPath: folderpath)
+                                        for newlogpath in enumeratorAtPath2! {
+                                            if (newlogpath as AnyObject).hasSuffix(".txt"){
+                                                let tmpData = NSData.init(contentsOfFile: "\(folderpath)/\(newlogpath)")
+                                                if (tmpData != nil) {
+                                                    let content = String.init(data: tmpData! as Data, encoding: String.Encoding.utf8)
+                                                    if (content != nil) {
+                                                        self.dealwithlog(log: content!, path: "\(folderpath)/\(newlogpath)")
+                                                    }else{
+                                                        //self.showmessage(inputString: "No string: \(logpath)")
+                                                    }
+                                                }else{
+                                                    //self.showmessage(inputString: "\n========================================\nFolder: \(logpath)")
+                                                }
+                                            }
+                                        }
+                                        self.run(cmd: "rm -rf \(folderpath)")
+                                    }
+                                    
                                 }
                             }
                         }
